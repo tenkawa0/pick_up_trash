@@ -36,27 +36,66 @@ const styles = StyleSheet.create({
 
 const Component: React.FC = () => {
   const navigation = useNavigation();
+  const [image, setImage] = useState<string>("");
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        alert("Sorry, we need camera roll permissions to make this work!");
+      }
+    })();
+    (async () => {
+      const { status } = await ImagePicker.requestCameraRollPermissionsAsync();
+      if (status !== "granted") {
+        alert("Sorry, we need camera roll permissions to make this work!");
+      }
+    })();
+  }, []);
+
+  const takePhoto = async () => {
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+    if (!result.cancelled) {
+      setImage(result.uri);
+    }
+  };
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+    if (!result.cancelled) {
+      setImage(result.uri);
+    }
+  };
+
   const pickUpTrash = () => {
+    setImage("");
     navigation.navigate("home");
   };
+
   return (
     <Page>
       <Text style={styles.lead}>Let's go pick up trash!</Text>
       <View style={styles.select}>
-        <Button title="Take a photo" />
+        <Button title="Take a photo" onPress={takePhoto} />
         <Text style={styles.or}>or</Text>
-        <Button title="Pick an image" />
+        <Button title="Pick an image" onPress={pickImage} />
       </View>
-      <Image
-        source={{
-          uri: "https://images.unsplash.com/photo-1603730347631-6aacbfef195a",
-        }}
-        style={styles.image}
-      />
+      {image !== "" && <Image source={{ uri: image }} style={styles.image} />}
       <Button
         title="Pick up trash!"
         buttonStyle={styles.upload}
         onPress={pickUpTrash}
+        disabled={image === ""}
       />
     </Page>
   );
